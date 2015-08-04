@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var _, codeControls, editor, javascriptEditorErrors, markdownEditor, markdownPreview, mathjaxProcessor, moreMarkdown, proc;
+var _, codeControls, editor, initialValue, javascriptEditorErrors, markdownEditor, markdownPreview, mathjaxProcessor, moreMarkdown, proc;
 
 _ = require('lodash');
 
@@ -26,13 +26,17 @@ markdownPreview = function(editor) {
   return proc.render(editor.getValue());
 };
 
-editor = markdownEditor.create('input', '', {
+initialValue = "# Test\n\n$$ a = \\frac{1}{b}$$\n\n```js\nconsole.log(\"eval this!\");\n```";
+
+editor = markdownEditor.create('input', initialValue, {
   plugins: [
     markdownPreview, (function(editor) {
       return editor.clearResults();
     }), javascriptEditorErrors(proc)
   ]
 });
+
+proc.render(editor.getValue());
 
 
 },{"@more-markdown/code-controls":2,"@more-markdown/mathjax-processor":4,"@tutor/javascript-editor-errors":177,"@tutor/markdown-editor":179,"lodash":190,"more-markdown":192}],2:[function(require,module,exports){

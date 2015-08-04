@@ -24,9 +24,20 @@ proc = moreMarkdown.create 'output', processors: [
 markdownPreview = (editor) ->
   proc.render editor.getValue()
 
-editor = markdownEditor.create 'input', '', plugins: [
+initialValue = """# Test
+
+$$ a = \\frac{1}{b}$$
+
+```js
+console.log("eval this!");
+```
+"""
+
+editor = markdownEditor.create 'input', initialValue, plugins: [
   markdownPreview,
   ((editor) ->
     editor.clearResults()),
   javascriptEditorErrors proc
 ]
+
+proc.render editor.getValue()
