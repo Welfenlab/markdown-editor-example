@@ -1,0 +1,38 @@
+{
+  "name": "md-edit-example",
+  "version": "0.1.0",
+  "description": "Example of the Markdown Editor with more-markdown",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Markdown",
+    "Editor"
+  ],
+  "contributors": [
+    "Maximilian Klein <dasmaxl@gmail.com> (https://github.com/LittleHelicase)",
+    "Maik Marschner (https://github.com/leMaik)",
+    "Tim Ebbeke (https://github.com/5cript)"
+  ],
+  "repository": "github:Welfenlab/markdown-editor-example",
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "^11.0.1",
+    "coffeeify": "^1.1.0",
+    "gulp": "^3.9.0",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglify": "^1.2.0",
+    "uglify": "^0.1.5",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  },
+  "dependencies": {
+    "@more-markdown/code-controls": "^0.1.2",
+    "@more-markdown/mathjax-processor": "^0.1.2",
+    "@tutor/javascript-editor-errors": "^0.1.1",
+    "@tutor/markdown-editor": "^0.1.1",
+    "lodash": "^3.10.0",
+    "more-markdown": "^0.1.1"
+  }
+}
