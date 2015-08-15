@@ -357,9 +357,11 @@ dotProcessor = function(tokens, graph_template, error_template) {
           graph = dot.read(graphStr);
           id = "dg-" + uuid.v4();
           postProcessors.registerElemenbById(id, function(elem, done) {
-            var ref, tags;
+            var svgElem, svgHeight, tags;
             d3.select(elem).call(render, graph);
-            elem.height = ((ref = elem.getElementsByClassName('output')[0]) != null ? ref.getBoundingClientRect().height : void 0) + 22;
+            svgElem = elem.getElementsByClassName('output')[0];
+            svgHeight = (svgElem != null ? svgElem.getBoundingClientRect().height : void 0) || 0;
+            elem.style.height = svgHeight + 22;
             if (!graph.isDirected()) {
               tags = elem.getElementsByTagName('path');
               [].forEach.call(tags, function(e) {
