@@ -31,8 +31,8 @@
     "@more-markdown/code-controls": "^0.1.2",
     "@more-markdown/mathjax-processor": "^0.1.2",
     "@tutor/javascript-editor-errors": "^0.1.1",
-    "@tutor/markdown-editor": "^0.1.1",
+    "@tutor/markdown-editor": "^0.1.3",
     "lodash": "^3.10.0",
-    "more-markdown": "^0.1.1"
+    "more-markdown": "^0.1.2"
   }
 }

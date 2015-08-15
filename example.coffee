@@ -4,6 +4,7 @@ _ = require 'lodash'
 moreMarkdown = require 'more-markdown'
 mathjaxProcessor = require '@more-markdown/mathjax-processor'
 codeControls     = require '@more-markdown/code-controls'
+dotProcessor     = require '@more-markdown/dot-processor'
 
 markdownEditor = require '@tutor/markdown-editor'
 javascriptEditorErrors = require '@tutor/javascript-editor-errors'
@@ -18,7 +19,9 @@ proc = moreMarkdown.create 'output', processors: [
         <button class='debug'>Debug</button>
       </div>
       <%= html %>
-      """)
+      """),
+  dotProcessor("dot", (_.template "<svg data-element-id=\"<%= id %>\"><g/></svg>"),
+    _.template "<p style='background-color:red'><%= error %></p>")
 ]
 
 markdownPreview = (editor) ->
@@ -31,12 +34,20 @@ $$ a = \\frac{1}{b}$$
 ```js
 console.log("eval this!");
 ```
+
+# Graphs via dot and dagreD3
+
+```dot
+digraph {
+abc -> b;
+c -> b;
+}
+```
 """
 
 editor = markdownEditor.create 'input', initialValue, plugins: [
   markdownPreview,
-  ((editor) ->
-    editor.clearResults()),
+  markdownEditor.clearResults,
   javascriptEditorErrors proc
 ]
 
