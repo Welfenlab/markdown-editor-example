@@ -48,7 +48,7 @@ c -> b;
 editor = markdownEditor.create 'input', initialValue, plugins: [
   markdownPreview,
   markdownEditor.clearResults,
-  javascriptEditorErrors proc
+  javascriptEditorErrors "js", proc
 ]
 
 proc.render editor.getValue()

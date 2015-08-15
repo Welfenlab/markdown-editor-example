@@ -31,7 +31,7 @@ markdownPreview = function(editor) {
 initialValue = "# Test\n\n$$ a = \\frac{1}{b}$$\n\n```js\nconsole.log(\"eval this!\");\n```\n\n# Graphs via dot and dagreD3\n\n```dot\ndigraph {\nabc -> b;\nc -> b;\n}\n```";
 
 editor = markdownEditor.create('input', initialValue, {
-  plugins: [markdownPreview, markdownEditor.clearResults, javascriptEditorErrors(proc)]
+  plugins: [markdownPreview, markdownEditor.clearResults, javascriptEditorErrors("js", proc)]
 });
 
 proc.render(editor.getValue());
@@ -42521,11 +42521,15 @@ module.exports = require("./lib/polyfill");
 module.exports = require("babel-core/polyfill");
 
 },{"babel-core/polyfill":288}],290:[function(require,module,exports){
-var _, esprima, parse;
+var _, esprima, parse, typeIsArray;
 
 esprima = require('esprima');
 
 _ = require('lodash');
+
+typeIsArray = Array.isArray || function(value) {
+  return {}.toString.call(value) === '[object Array]';
+};
 
 parse = function(code) {
   var e, syntax;
@@ -42546,12 +42550,15 @@ parse = function(code) {
   }
 };
 
-module.exports = function(markdown_processor) {
+module.exports = function(langs, markdown_processor) {
+  if (!typeIsArray(langs)) {
+    langs = [langs];
+  }
   return function(editor, delta) {
     var code_tokens, results, tokens;
     tokens = markdown_processor.parse(editor.getValue());
-    code_tokens = _.filter(tokens, {
-      tag: 'code'
+    code_tokens = _.filter(tokens, function(t) {
+      return (langs.indexOf(t.info)) > -1;
     });
     results = _.map(code_tokens, function(code_token) {
       var res, resCorrLine;
