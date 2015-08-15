@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@more-markdown/code-controls": "^0.1.2",
+    "@more-markdown/dot-processor": "^0.1.1",
     "@more-markdown/mathjax-processor": "^0.1.2",
     "@tutor/javascript-editor-errors": "^0.1.1",
     "@tutor/markdown-editor": "^0.1.3",
