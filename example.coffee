@@ -38,14 +38,19 @@ proc = moreMarkdown.create 'output', processors: [
   testProcessor(["test","tests"],
     {
       tests: [
-        (testSuite.extractTestNames (->)),
-        (testSuite.itTests (->), ((error, passed, failed) -> console.log "passed #{passed}, failed #{failed} (error: #{error})"))
+        (testSuite.extractTestNames (->), ((name, elem)-> elem.innerHTML += "<li>#{name}</li>")),
+        (testSuite.itTests ((status, index, elem)->
+            if status == null
+              elem.children[index].innerHTML += " <span style='color:green'>Success</span>";
+            else
+              elem.children[index].innerHTML += " <span style='color:red'>Failed (#{status.exception})</span>";
+          ), 
+          ((error, passed, failed) -> console.log "passed #{passed}, failed #{failed} (error: #{error})"))
         testSuite.debugLog
       ],
       runner: jsSandbox,
       templates:{
-        tests: _.template("<h1>Tests</h1><ul data-element-id=\"<%= id %></ul>"),
-        item: _.template("<li><%= name %> <%= status %>")
+        tests: _.template("<h1>Tests</h1><ul data-element-id=\"<%= id %>\"></ul>")
       }
     })
 ]
@@ -73,6 +78,8 @@ c -> b;
 
 ```test
 it("should work", function(){});
+it("should work 2", function(){});
+it("should work 3", function(){throw "abc"});
 ```
 """
 
