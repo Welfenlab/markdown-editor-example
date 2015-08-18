@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var _, codeControls, dotProcessor, editor, initialValue, javascriptEditorErrors, jsSandbox, markdownEditor, markdownPreview, mathjaxProcessor, moreMarkdown, proc, testProcessor, testSuite;
+var _, codeControls, dotProcessor, editor, graphTestSuite, initialValue, javascriptEditorErrors, jsSandbox, markdownEditor, markdownPreview, mathjaxProcessor, moreMarkdown, proc, testProcessor, testSuite;
 
 _ = require('lodash');
 
@@ -19,6 +19,8 @@ javascriptEditorErrors = require('@tutor/javascript-editor-errors');
 
 testSuite = require('@tutor/test-suite');
 
+graphTestSuite = require('@tutor/graph-test-suite');
+
 jsSandbox = require('@tutor/javascript-sandbox');
 
 proc = moreMarkdown.create('output', {
@@ -35,7 +37,7 @@ proc = moreMarkdown.create('output', {
           }
         }), (function(error, passed, failed) {
           return console.log("passed " + passed + ", failed " + failed + " (error: " + error + ")");
-        })), testSuite.debugLog
+        })), testSuite.jsTests, graphTestSuite.collectGraphs, graphTestSuite.graphApi, testSuite.debugLog
       ],
       runner: jsSandbox,
       templates: {
@@ -58,7 +60,7 @@ editor = markdownEditor.create('input', initialValue, {
 proc.render(editor.getValue());
 
 
-},{"@more-markdown/code-controls":2,"@more-markdown/dot-processor":4,"@more-markdown/mathjax-processor":117,"@more-markdown/test-processor":376,"@tutor/javascript-editor-errors":290,"@tutor/javascript-sandbox":292,"@tutor/markdown-editor":294,"@tutor/test-suite":380,"lodash":305,"more-markdown":306}],2:[function(require,module,exports){
+},{"@more-markdown/code-controls":2,"@more-markdown/dot-processor":4,"@more-markdown/mathjax-processor":117,"@more-markdown/test-processor":376,"@tutor/graph-test-suite":382,"@tutor/javascript-editor-errors":290,"@tutor/javascript-sandbox":292,"@tutor/markdown-editor":294,"@tutor/test-suite":418,"lodash":305,"more-markdown":306}],2:[function(require,module,exports){
 var uuid;
 
 uuid = require('node-uuid');
@@ -80260,7 +80262,7 @@ module.exports = {
         fencedContent = origFence.apply(_this, arguments);
         if ((langs.indexOf(fenceToken.info)) > -1) {
           testCode = fenceToken.content;
-          domStuff = gen_dom(testCode);
+          domStuff = gen_dom(testCode, tokens);
           fencedContent = domStuff.dom;
         }
         return fencedContent;
@@ -80292,7 +80294,7 @@ testProcessor = function(langs, config) {
         testsChanged: cbo(),
         testsCodeChanged: cbo()
       };
-      markdownItTest.register(mdInstance, langs, function(testCode) {
+      markdownItTest.register(mdInstance, langs, function(testCode, token) {
         var id;
         id = "tp-" + uuid.v4();
         postProcessors.registerElemenbById(id, function(elem, done) {
@@ -80302,11 +80304,11 @@ testProcessor = function(langs, config) {
           testFlavors = config.tests;
           prepareFlavors = _.select(testFlavors, 'prepare');
           flavoredCode = _.reduce(prepareFlavors, (function(code, flavor) {
-            return flavor.prepare(code, runner, elem);
+            return flavor.prepare(code, runner, elem, token);
           }), testCode);
           apiFlavors = _.select(testFlavors, 'api');
           customApis = _.map(apiFlavors, function(flavor) {
-            return flavor.api(flavoredCode, runner, elem);
+            return flavor.api(flavoredCode, runner, elem, token);
           });
           failedCallbacks = unifiedCallbacks(customApis, "failed");
           finishedCallbacks = unifiedCallbacks(customApis, "finished");
@@ -80346,52 +80348,190 @@ arguments[4][114][0].apply(exports,arguments)
 arguments[4][3][0].apply(exports,arguments)
 },{"dup":3}],380:[function(require,module,exports){
 module.exports = {
-  extractTestNames: function(allTests, registerTest) {
+  api: function() {
     return {
-      prepare: function(code, runner, elem) {
-        var tests;
-        tests = [];
-        runner.run("var it = function(name, fn) {\n  application.remote.registerTest(name);\n};\n" + code + "\napplication.remote.finished();", {
-          registerTest: function(name) {
-            tests.push(name);
-            return typeof registerTest === "function" ? registerTest(name, elem) : void 0;
-          },
-          finished: function() {
-            return typeof allTests === "function" ? allTests(tests, elem) : void 0;
+      anyGraph: function(msg, fn) {
+        var any;
+        any = false;
+        graphs.forEach(function(g) {
+          var e;
+          try {
+            fn(g);
+            return any = true;
+          } catch (_error) {
+            e = _error;
           }
         });
-        return code;
+        if (!any) {
+          throw msg;
+        }
       }
     };
-  },
-  itTests: function(result, allResults) {
-    return {
-      prepare: function(code, runner) {
-        return "var it = (function(){\n  var __it_index = 0;\n  return function(name, fn) {\n    try {\n      fn();\n      application.remote.pass(__it_index);\n    } catch (e) {\n      application.remote.fail(__it_index, {isException: true, exception: e});\n    }\n    __it_index++;\n  }\n})();\n" + code;
-      },
-      api: function(code, runner, elem) {
-        var failed, passed;
-        passed = 0;
-        failed = 0;
-        return {
-          pass: function(idx) {
-            passed++;
-            return result(null, idx, elem);
-          },
-          fail: function(idx, error) {
-            failed++;
-            return result(error, idx, elem);
-          },
-          finished: function() {
-            return allResults(null, passed, failed);
-          },
-          failed: function(e) {
-            return allResults(e, 0, -1);
-          }
-        };
-      }
-    };
-  },
+  }
+};
+
+},{}],381:[function(require,module,exports){
+var _, dot;
+
+dot = require('graphlib-dot');
+
+_ = require('lodash');
+
+module.exports = {
+  prepare: function(code, runner, elem, tokens) {
+    var graphArray, graphCode;
+    graphArray = _(tokens).chain().filter({
+      "info": "dot"
+    }).pluck("content").map(dot.read).map(JSON.stringify).value();
+    graphCode = graphArray.join(",");
+    return ("graphs = [" + graphCode + "];\n") + code;
+  }
+};
+
+},{"graphlib-dot":383,"lodash":414}],382:[function(require,module,exports){
+module.exports = {
+  collectGraphs: require('./flavors/graphs'),
+  graphApi: require('./flavors/api')
+};
+
+},{"./flavors/api":380,"./flavors/graphs":381}],383:[function(require,module,exports){
+arguments[4][85][0].apply(exports,arguments)
+},{"./lib/graphlib":386,"./lib/read-many":388,"./lib/read-one":389,"./lib/version":390,"./lib/write-one":391,"dup":85}],384:[function(require,module,exports){
+arguments[4][86][0].apply(exports,arguments)
+},{"./graphlib":386,"./lodash":387,"dup":86}],385:[function(require,module,exports){
+arguments[4][87][0].apply(exports,arguments)
+},{"./lodash":387,"dup":87}],386:[function(require,module,exports){
+arguments[4][15][0].apply(exports,arguments)
+},{"dup":15,"graphlib":392}],387:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"dup":27,"lodash":413}],388:[function(require,module,exports){
+arguments[4][90][0].apply(exports,arguments)
+},{"./build-graph":384,"./dot-grammar":385,"./lodash":387,"dup":90}],389:[function(require,module,exports){
+arguments[4][91][0].apply(exports,arguments)
+},{"./build-graph":384,"./dot-grammar":385,"dup":91}],390:[function(require,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"dup":92}],391:[function(require,module,exports){
+arguments[4][93][0].apply(exports,arguments)
+},{"./lodash":387,"dup":93}],392:[function(require,module,exports){
+arguments[4][65][0].apply(exports,arguments)
+},{"./lib":408,"./lib/alg":399,"./lib/json":409,"dup":65}],393:[function(require,module,exports){
+arguments[4][66][0].apply(exports,arguments)
+},{"../lodash":410,"dup":66}],394:[function(require,module,exports){
+arguments[4][67][0].apply(exports,arguments)
+},{"../lodash":410,"dup":67}],395:[function(require,module,exports){
+arguments[4][68][0].apply(exports,arguments)
+},{"../lodash":410,"./dijkstra":396,"dup":68}],396:[function(require,module,exports){
+arguments[4][69][0].apply(exports,arguments)
+},{"../data/priority-queue":406,"../lodash":410,"dup":69}],397:[function(require,module,exports){
+arguments[4][70][0].apply(exports,arguments)
+},{"../lodash":410,"./tarjan":404,"dup":70}],398:[function(require,module,exports){
+arguments[4][71][0].apply(exports,arguments)
+},{"../lodash":410,"dup":71}],399:[function(require,module,exports){
+arguments[4][72][0].apply(exports,arguments)
+},{"./components":393,"./dijkstra":396,"./dijkstra-all":395,"./find-cycles":397,"./floyd-warshall":398,"./is-acyclic":400,"./postorder":401,"./preorder":402,"./prim":403,"./tarjan":404,"./topsort":405,"dup":72}],400:[function(require,module,exports){
+arguments[4][73][0].apply(exports,arguments)
+},{"./topsort":405,"dup":73}],401:[function(require,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"./dfs":394,"dup":74}],402:[function(require,module,exports){
+arguments[4][75][0].apply(exports,arguments)
+},{"./dfs":394,"dup":75}],403:[function(require,module,exports){
+arguments[4][76][0].apply(exports,arguments)
+},{"../data/priority-queue":406,"../graph":407,"../lodash":410,"dup":76}],404:[function(require,module,exports){
+arguments[4][77][0].apply(exports,arguments)
+},{"../lodash":410,"dup":77}],405:[function(require,module,exports){
+arguments[4][78][0].apply(exports,arguments)
+},{"../lodash":410,"dup":78}],406:[function(require,module,exports){
+arguments[4][79][0].apply(exports,arguments)
+},{"../lodash":410,"dup":79}],407:[function(require,module,exports){
+arguments[4][80][0].apply(exports,arguments)
+},{"./lodash":410,"dup":80}],408:[function(require,module,exports){
+arguments[4][81][0].apply(exports,arguments)
+},{"./graph":407,"./version":411,"dup":81}],409:[function(require,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"./graph":407,"./lodash":410,"dup":82}],410:[function(require,module,exports){
+arguments[4][44][0].apply(exports,arguments)
+},{"dup":44,"lodash":412}],411:[function(require,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"dup":84}],412:[function(require,module,exports){
+arguments[4][114][0].apply(exports,arguments)
+},{"dup":114}],413:[function(require,module,exports){
+arguments[4][115][0].apply(exports,arguments)
+},{"dup":115}],414:[function(require,module,exports){
+arguments[4][114][0].apply(exports,arguments)
+},{"dup":114}],415:[function(require,module,exports){
+module.exports = function(allTests, registerTest) {
+  return {
+    prepare: function(code, runner, elem) {
+      var tests;
+      tests = [];
+      runner.run("var it = function(name, fn) {\n  application.remote.registerTest(name);\n};\n" + code + "\napplication.remote.finished();", {
+        registerTest: function(name) {
+          tests.push(name);
+          return typeof registerTest === "function" ? registerTest(name, elem) : void 0;
+        },
+        finished: function() {
+          return typeof allTests === "function" ? allTests(tests, elem) : void 0;
+        }
+      });
+      return code;
+    }
+  };
+};
+
+},{}],416:[function(require,module,exports){
+module.exports = function(result, allResults) {
+  return {
+    prepare: function(code, runner) {
+      return "var it = (function(){\n  var __it_index = 0;\n  return function(name, fn) {\n    try {\n      fn();\n      application.remote.pass(__it_index);\n    } catch (e) {\n      application.remote.fail(__it_index, {isException: true, exception: e});\n    }\n    __it_index++;\n  }\n})();\n" + code;
+    },
+    api: function(code, runner, elem) {
+      var failed, passed;
+      passed = 0;
+      failed = 0;
+      return {
+        pass: function(idx) {
+          passed++;
+          return result(null, idx, elem);
+        },
+        fail: function(idx, error) {
+          failed++;
+          return result(error, idx, elem);
+        },
+        finished: function() {
+          return allResults(null, passed, failed);
+        },
+        failed: function(e) {
+          return allResults(e, 0, -1);
+        }
+      };
+    }
+  };
+};
+
+},{}],417:[function(require,module,exports){
+var _, concat;
+
+_ = require('lodash');
+
+concat = function(a, b) {
+  return a + b;
+};
+
+module.exports = {
+  prepare: function(code, runner, elem, tokens) {
+    var testsCode;
+    testsCode = _(tokens).chain().filter({
+      "info": "js"
+    }).pluck("content").reduce(concat, "").value();
+    return testsCode + "\n" + code;
+  }
+};
+
+},{"lodash":419}],418:[function(require,module,exports){
+module.exports = {
+  extractTestNames: require('./flavors/extract_test_names'),
+  itTests: require('./flavors/it_style_tests'),
+  jsTests: require('./flavors/jscode_tests'),
   debugLog: {
     prepare: function(code) {
       return code;
@@ -80407,4 +80547,6 @@ module.exports = {
   }
 };
 
-},{}]},{},[1]);
+},{"./flavors/extract_test_names":415,"./flavors/it_style_tests":416,"./flavors/jscode_tests":417}],419:[function(require,module,exports){
+arguments[4][114][0].apply(exports,arguments)
+},{"dup":114}]},{},[1]);

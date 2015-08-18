@@ -10,6 +10,7 @@ testProcessor    = require '@more-markdown/test-processor'
 markdownEditor = require '@tutor/markdown-editor'
 javascriptEditorErrors = require '@tutor/javascript-editor-errors'
 testSuite      = require '@tutor/test-suite'
+graphTestSuite = require '@tutor/graph-test-suite'
 jsSandbox      = require '@tutor/javascript-sandbox'
 
 proc = moreMarkdown.create 'output', processors: [
@@ -45,7 +46,10 @@ proc = moreMarkdown.create 'output', processors: [
             else
               elem.children[index].innerHTML += " <span style='color:red'>Failed (#{status.exception})</span>";
           ), 
-          ((error, passed, failed) -> console.log "passed #{passed}, failed #{failed} (error: #{error})"))
+          ((error, passed, failed) -> console.log "passed #{passed}, failed #{failed} (error: #{error})")),
+        testSuite.jsTests,
+        graphTestSuite.collectGraphs,
+        graphTestSuite.graphApi,
         testSuite.debugLog
       ],
       runner: jsSandbox,
