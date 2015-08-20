@@ -39,17 +39,17 @@ proc = moreMarkdown.create 'output', processors: [
   testProcessor(["test","tests"],
     {
       tests: [
-        (testSuite.extractTestNames (->), ((name, elem)-> elem.innerHTML += "<li>#{name}</li>")),
         (testSuite.itTests ((status, index, elem)->
             if status == null
               elem.children[index].innerHTML += " <span style='color:green'>Success</span>";
             else
               elem.children[index].innerHTML += " <span style='color:red'>Failed (#{status.exception})</span>";
-          ), 
+          ),
           ((error, passed, failed) -> console.log "passed #{passed}, failed #{failed} (error: #{error})")),
         testSuite.jsTests,
         graphTestSuite.collectGraphs,
         graphTestSuite.graphApi,
+        (testSuite.extractTestNames (->), ((name, elem)-> elem.innerHTML += "<li>#{name}</li>")),
         testSuite.debugLog
       ],
       runner: jsSandbox,
