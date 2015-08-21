@@ -1,0 +1,19 @@
+{
+  "name": "markdown-editor-example",
+  "version": "0.0.0",
+  "homepage": "https://github.com/Welfenlab/markdown-editor-example",
+  "authors": [
+    "Maximilian Klein <mklein@welfenlab.de>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jailed": "~0.2.0"
+  }
+}

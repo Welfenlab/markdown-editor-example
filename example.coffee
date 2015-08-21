@@ -12,6 +12,8 @@ javascriptEditorErrors = require '@tutor/javascript-editor-errors'
 testSuite      = require '@tutor/test-suite'
 graphTestSuite = require '@tutor/graph-test-suite'
 jsSandbox      = require '@tutor/javascript-sandbox'
+jailedSandbox  = require '@tutor/jailed-sandbox'
+browserDebug   = require '@tutor/browser-debug-js'
 
 proc = moreMarkdown.create 'output', processors: [
   # The mathjax processor finds all LaTeX formulas and typesets them
@@ -20,7 +22,11 @@ proc = moreMarkdown.create 'output', processors: [
   # The code controls add buttons to "js" code environments that allow
   # the user to run or debug the code
   codeControls("js",
-      jsSandbox
+      {
+        run: jailedSandbox.run
+        debug: _.partial jailedSandbox.debug, _, {}, timeout: 1*60*1000 # 1 minute
+        # debug: browserDebug.debug # supports debugger but hangs on infinite loops
+      }
       , _.template """
       <div data-element-id=\"<%= id %>\">
         <button class='play'>Run</button>
@@ -55,7 +61,7 @@ proc = moreMarkdown.create 'output', processors: [
         graphTestSuite.graphApi,
         testSuite.debugLog
       ],
-      runner: jsSandbox,
+      runner: jailedSandbox,
       templates:{
         tests: _.template("<h1>Tests</h1><ul data-element-id=\"<%= id %>\"></ul>")
       }
