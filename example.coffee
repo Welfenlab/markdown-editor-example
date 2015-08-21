@@ -20,7 +20,7 @@ proc = moreMarkdown.create 'output', processors: [
   # The code controls add buttons to "js" code environments that allow
   # the user to run or debug the code
   codeControls("js",
-      jsSandbox.createRunner()
+      jsSandbox
       , _.template """
       <div data-element-id=\"<%= id %>\">
         <button class='play'>Run</button>
@@ -39,17 +39,20 @@ proc = moreMarkdown.create 'output', processors: [
   testProcessor(["test","tests"],
     {
       tests: [
-        (testSuite.itTests ((status, index, elem)->
-            if status == null
-              elem.children[index].innerHTML += " <span style='color:green'>Success</span>";
-            else
-              elem.children[index].innerHTML += " <span style='color:red'>Failed (#{status.exception})</span>";
+        (testSuite.itTests 
+          registerTest: ((name, elem)-> elem.innerHTML += "<li>#{name}</li>")
+          testResult: ((status, index, elem)->
+              if status == null
+                elem.children[index].innerHTML += " <span style='color:green'>Success</span>";
+              else
+                elem.children[index].innerHTML += " <span style='color:red'>Failed (#{status.exception})</span>";
+            )
+          allResults: ((error, passed, failed) -> 
+            console.log "passed #{passed}, failed #{failed} (error: #{error})")
           ),
-          ((error, passed, failed) -> console.log "passed #{passed}, failed #{failed} (error: #{error})")),
         testSuite.jsTests,
         graphTestSuite.collectGraphs,
         graphTestSuite.graphApi,
-        (testSuite.extractTestNames (->), ((name, elem)-> elem.innerHTML += "<li>#{name}</li>")),
         testSuite.debugLog
       ],
       runner: jsSandbox,
@@ -81,6 +84,11 @@ c -> b;
 
 
 ```test
+anyGraph("should have b", function(g){
+    if(!g._nodes["b"]){
+        throw "NO B";
+    }
+});
 it("should work", function(){});
 it("should work 2", function(){});
 it("should work 3", function(){throw "abc"});
