@@ -5,6 +5,7 @@ moreMarkdown = require 'more-markdown'
 mathjaxProcessor = require '@more-markdown/mathjax-processor'
 codeControls     = require '@more-markdown/code-controls'
 dotProcessor     = require '@more-markdown/dot-processor'
+svgProcessor     = require '@more-markdown/svg-processor'
 testProcessor    = require '@more-markdown/test-processor'
 
 markdownEditor = require '@tutor/markdown-editor'
@@ -39,6 +40,10 @@ proc = moreMarkdown.create 'output', processors: [
   # for these
   dotProcessor("dot", (_.template "<svg data-element-id=\"<%= id %>\"><g/></svg>"),
     _.template "<p style='background-color:red'><%= error %></p>")
+
+
+  svgProcessor("svg", (_.template "<svg data-element-id=\"<%= id %>\"></svg>"),
+    _.template "<p style='background-color:red'><%= error %></p>")  
 
   # The test processor creates the "test" code environment in which one can
   # define tests in yasmine syntax
@@ -88,6 +93,19 @@ c -> b;
 }
 ```
 
+```svg
+<rect x="10" y="10" width="100" height="100"
+    fill="yellow" stroke="navy" stroke-width="10"  />
+
+<circle cx="50" cy="50" r="25" 
+    fill="orange" />
+
+<line x1="50" y1="50" x2="100" y2="100"
+    stroke="blue" stroke-width="4" />
+
+<polyline points="150,100 150,50 200,100 150,100 200,50 175,10 150,50 200,50 200,100"
+    stroke="red" stroke-width="4" fill="none" />
+```
 
 ```test
 anyGraph("should have b", function(g){
