@@ -6,6 +6,7 @@ mathjaxProcessor = require '@more-markdown/mathjax-processor'
 codeControls     = require '@more-markdown/code-controls'
 dotProcessor     = require '@more-markdown/dot-processor'
 svgProcessor     = require '@more-markdown/svg-processor'
+treeProcessor     = require '@more-markdown/tree-processor'
 testProcessor    = require '@more-markdown/test-processor'
 
 markdownEditor = require '@tutor/markdown-editor'
@@ -41,8 +42,10 @@ proc = moreMarkdown.create 'output', processors: [
   dotProcessor("dot", (_.template "<svg data-element-id=\"<%= id %>\"><g/></svg>"),
     _.template "<p style='background-color:red'><%= error %></p>")
 
-
   svgProcessor("svg", (_.template "<svg data-element-id=\"<%= id %>\"></svg>"),
+    _.template "<p style='background-color:red'><%= error %></p>")  
+
+  treeProcessor("tree", (_.template "<svg data-element-id=\"<%= id %>\"></svg>"),
     _.template "<p style='background-color:red'><%= error %></p>")  
 
   # The test processor creates the "test" code environment in which one can
@@ -91,6 +94,10 @@ digraph {
 abc -> b;
 c -> b;
 }
+```
+
+```tree
+A(B(D E(F))C )
 ```
 
 ```svg
