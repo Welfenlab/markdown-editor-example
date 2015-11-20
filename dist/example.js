@@ -68,7 +68,7 @@ markdownPreview = function(editor) {
   return proc.render(editor.getValue());
 };
 
-initialValue = "# Test\n\n$$ a = \\frac{1}{b}$$\n\n```js\nconsole.log(\"eval this!\");\n```\n\n# Graphs via dot and dagreD3\n\n```dot\ndigraph {\nabc -> b;\nc -> b;\n}\n```\n\n```tree\nA(B(D E(F))C )\n```\n\n```svg\n<rect x=\"10\" y=\"10\" width=\"100\" height=\"100\"\n    fill=\"yellow\" stroke=\"navy\" stroke-width=\"10\"  />\n\n<circle cx=\"50\" cy=\"50\" r=\"25\" \n    fill=\"orange\" />\n\n<line x1=\"50\" y1=\"50\" x2=\"100\" y2=\"100\"\n    stroke=\"blue\" stroke-width=\"4\" />\n\n<polyline points=\"150,100 150,50 200,100 150,100 200,50 175,10 150,50 200,50 200,100\"\n    stroke=\"red\" stroke-width=\"4\" fill=\"none\" />\n```\n\n```test\nanyGraph(\"should have b\", function(g){\n    if(!g._nodes[\"b\"]){\n        throw \"NO B\";\n    }\n});\nit(\"should work\", function(){});\nit(\"should work 2\", function(){});\nit(\"should work 3\", function(){throw \"abc\"});\n```";
+initialValue = "# Test\n\n$$ a = \\frac{1}{b}$$\n\n```js\nconsole.log(\"eval this!\");\n```\n\n# Graphs via dot and dagreD3\n\n```dot\ndigraph {\nabc -> b;\nc -> b;\n}\n```\n\n```tree\nA(B(D(()()) E(F (()())())) C(()()) )\n```\n\n```svg\n<rect x=\"10\" y=\"10\" width=\"100\" height=\"100\"\n    fill=\"yellow\" stroke=\"navy\" stroke-width=\"10\"  />\n\n<circle cx=\"50\" cy=\"50\" r=\"25\" \n    fill=\"orange\" />\n\n<line x1=\"50\" y1=\"50\" x2=\"100\" y2=\"100\"\n    stroke=\"blue\" stroke-width=\"4\" />\n\n<polyline points=\"150,100 150,50 200,100 150,100 200,50 175,10 150,50 200,50 200,100\"\n    stroke=\"red\" stroke-width=\"4\" fill=\"none\" />\n```\n\n```test\nanyGraph(\"should have b\", function(g){\n    if(!g._nodes[\"b\"]){\n        throw \"NO B\";\n    }\n});\nit(\"should work\", function(){});\nit(\"should work 2\", function(){});\nit(\"should work 3\", function(){throw \"abc\"});\n```";
 
 editor = markdownEditor.create('input', initialValue, {
   plugins: [markdownPreview, markdownEditor.clearResults, javascriptEditorErrors("js", proc)]
@@ -80984,7 +80984,8 @@ dagreD3 = require('dagre-d3');
 uuid = require('node-uuid');
 
 parseTree = function(string, graph) {
-  var addName, addToGraph, c, count, countName, i, len, name, parrent, parrents, prevChar, results, tempName;
+  var addName, addToGraph, brackets, c, count, countName, name, parrent, parrents, pos, prevChar, tempName;
+  brackets = 0;
   count = 0;
   parrents = [];
   tempName = "";
@@ -81002,7 +81003,7 @@ parseTree = function(string, graph) {
   addToGraph = function(graph) {
     var shape;
     shape = "circle";
-    if (name === "#") {
+    if (name === "#" || name === '') {
       shape = "rect";
       name = "";
     }
@@ -81017,9 +81018,10 @@ parseTree = function(string, graph) {
     }
   };
   prevChar = "";
-  results = [];
-  for (i = 0, len = string.length; i < len; i++) {
-    c = string[i];
+  pos = 0;
+  console.log(string.length);
+  while (pos < string.length) {
+    c = string[pos++];
     switch (c) {
       case ' ':
         if (tempName) {
@@ -81028,12 +81030,23 @@ parseTree = function(string, graph) {
         }
         break;
       case '(':
-        addName();
-        addToGraph(graph);
-        parrent = countName;
-        parrents.push(parrent);
+        brackets++;
+        if (string[pos] === ')') {
+          brackets--;
+          console.log(pos, string);
+          tempName = '#';
+          addName();
+          addToGraph(graph);
+          pos++;
+        } else {
+          addName();
+          addToGraph(graph);
+          parrent = countName;
+          parrents.push(parrent);
+        }
         break;
       case ')':
+        brackets--;
         addName();
         if (prevChar !== ')') {
           addToGraph(graph);
@@ -81047,12 +81060,12 @@ parseTree = function(string, graph) {
         }
     }
     if (c !== ' ') {
-      results.push(prevChar = c);
-    } else {
-      results.push(void 0);
+      prevChar = c;
     }
   }
-  return results;
+  if (brackets > 0) {
+    return console.log("wrong number of brackets " + brackets);
+  }
 };
 
 treeProcessor = function(tokens, graph_template, error_template) {
