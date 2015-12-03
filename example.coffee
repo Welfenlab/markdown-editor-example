@@ -8,6 +8,7 @@ dotProcessor     = require '@more-markdown/dot-processor'
 svgProcessor     = require '@more-markdown/svg-processor'
 treeProcessor     = require '@more-markdown/tree-processor'
 testProcessor    = require '@more-markdown/test-processor'
+chartProcessor    = require '@more-markdown/graph-chart-processor'
 
 markdownEditor = require '@tutor/markdown-editor'
 javascriptEditorErrors = require '@tutor/javascript-editor-errors'
@@ -46,7 +47,10 @@ proc = moreMarkdown.create 'output', processors: [
     _.template "<p style='background-color:red'><%= error %></p>")  
 
   treeProcessor("tree", (_.template "<svg data-element-id=\"<%= id %>\"></svg>"),
-    _.template "<p style='background-color:red'><%= error %></p>")  
+    _.template "<p style='background-color:red'><%= error %></p>")
+
+  chartProcessor("chart", (_.template "<div data-element-id=\"<%= id %>\"><svg></svg></div>"),
+    _.template "<p style='background-color:red'><%= error %></p>")
 
   # The test processor creates the "test" code environment in which one can
   # define tests in yasmine syntax
@@ -94,6 +98,23 @@ digraph {
 abc -> b;
 c -> b;
 }
+```
+
+```chart
+plot(
+  [[0,1],[1,2],[2,5],[3,3],[4,6],[5,1],[6,0]],
+  function() {
+    var data = [];
+    for(var i=0; i < 10; i++)
+      data.push([i, i*i]);
+    return data;
+  },function() {
+    var data = [];
+    for(var i=0; i < 10; i++)
+      data.push([i-2, (i-10)*Math.pow(i,4-i)]);
+    return data;
+  }
+);
 ```
 
 ```tree
