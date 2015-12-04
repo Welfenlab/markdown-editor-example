@@ -6,7 +6,9 @@
   <script type="text/javascript"
     src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
   <script src="bower_components/jailed/lib/jailed.js"></script>
+  <script src="bower_components/d3/d3.min.js"></script>
   <link href="bower_components/nvd3/build/nv.d3.min.css" rel="stylesheet">
+  <script src="bower_components/highlightjs/highlight.pack.min.js"></script>
   <style>
   <script>
     MathJax.Hub.Config({
@@ -67,9 +69,14 @@ svg {
 }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="//cmcenroe.me/writ/0.2.1/writ.min.css">
+  <link rel="stylesheet" type="text/css" href="./dist/style.css">
 </head>
 <body>
+  <div id="input" class="tex2jax_ignore" style="width: 50vw; float:left"></div>
+  <div class="ui tab" data-tab="preview-tab" style="width: 45vw; float:left">
+    <tutor-task-preview params="{task: task()}"></tutor-task-preview>
+  </div>
+  <!--
   <table>
     <tr>
       <td style="vertical-align: top">
@@ -81,6 +88,7 @@ svg {
       </td>
     </tr>
   </table>
+  -->
   <script src="./dist/example.js"></script>
 </body>
 </html>

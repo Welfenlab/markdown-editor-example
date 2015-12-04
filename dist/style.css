@@ -1,0 +1,67 @@
+tutor-task-preview pre {
+  background: #eee;
+  padding: 1rem;
+}
+tutor-task-preview > .task {
+  opacity: 0.5;
+  margin-bottom: 5px;
+}
+tutor-task-preview > .task .task {
+  font-weight: bold;
+}
+tutor-task-preview > .task .points {
+  font-style: italic;
+}
+tutor-task-preview .grapherror {
+  border: 1px solid red;
+  background: #faa;
+  padding: 5px;
+}
+tutor-task-preview .grapherror span.title {
+  font-weight: bold;
+}
+tutor-task-preview .grapherror span.error {
+  font-family: monospace;
+  font-size: 0.8em;
+}
+tutor-task-preview svg {
+  border: 1px solid #999;
+  overflow: hidden;
+  width: 100%;
+  padding: 10px;
+  clear: both;
+  display: block;
+}
+tutor-task-preview .node {
+  white-space: nowrap;
+}
+tutor-task-preview .node rect,
+tutor-task-preview .node circle,
+tutor-task-preview .node ellipse {
+  stroke: #333;
+  fill: #fff;
+  stroke-width: 1.5px;
+}
+tutor-task-preview .cluster rect {
+  stroke: #333;
+  fill: #000;
+  fill-opacity: 0.1;
+  stroke-width: 1.5px;
+}
+tutor-task-preview .edgePath path.path {
+  stroke: #333;
+  stroke-width: 1.5px;
+  fill: none;
+}
+tutor-task-preview table,
+tutor-task-preview td,
+tutor-task-preview th {
+  border: 1px solid #aaa;
+}
+tutor-task-preview td {
+  padding: 5px;
+}
+tutor-task-preview th {
+  background: #eee;
+  padding: 5px;
+}

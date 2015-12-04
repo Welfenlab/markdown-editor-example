@@ -18,6 +18,10 @@ jsSandbox      = require '@tutor/javascript-sandbox'
 jailedSandbox  = require '@tutor/jailed-sandbox'
 browserDebug   = require '@tutor/browser-debug-js'
 
+ko = require 'knockout'
+moment = require 'moment'
+require '@tutor/task-preview'
+
 proc = moreMarkdown.create 'output', processors: [
   # The mathjax processor finds all LaTeX formulas and typesets them
   mathjaxProcessor,
@@ -147,10 +151,20 @@ it("should work 3", function(){throw "abc"});
 ```
 """
 
-editor = markdownEditor.create 'input', initialValue, plugins: [
-  markdownPreview,
-  markdownEditor.clearResults,
-  javascriptEditorErrors "js", proc
-]
+updatePreview = (editor) ->
+  text(editor.getValue())
 
-proc.render editor.getValue()
+editor = markdownEditor.create 'input', initialValue, plugins: [
+          _.throttle ((editor) =>
+            updatePreview editor), 1000
+        ]
+
+text = ko.observable editor.getValue()
+
+task = ko.computed => 
+  solution: text
+  text: -> ""
+  tests: -> ""
+
+
+ko.applyBindings(task:task)
