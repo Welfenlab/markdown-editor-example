@@ -37,18 +37,18 @@
     "@more-markdown/graph-chart-processor": "^0.0.2",
     "@more-markdown/mathjax-processor": "^0.1.2",
     "@more-markdown/svg-processor": "^0.0.3",
-    "@more-markdown/test-processor": "^0.1.3",
+    "@more-markdown/test-processor": "^0.1.9",
     "@more-markdown/tree-processor": "^0.0.6",
     "@tutor/browser-debug-js": "^0.1.1",
     "@tutor/graph-test-suite": "^0.2.1",
-    "@tutor/jailed-sandbox": "^0.2.0",
+    "@tutor/jailed-sandbox": "^0.3.3",
     "@tutor/javascript-editor-errors": "^0.1.3",
     "@tutor/javascript-sandbox": "^0.2.1",
-    "@tutor/markdown-editor": "^0.1.3",
-    "@tutor/task-preview": "^0.1.14",
+    "@tutor/markdown-editor": "^0.2.0",
+    "@tutor/task-preview": "^0.2.1",
     "@tutor/test-suite": "^0.2.1",
-    "lodash": "^3.10.0",
+    "lodash": "^3.10.1",
     "moment": "^2.10.6",
-    "more-markdown": "^0.1.3"
+    "more-markdown": "^0.2.1"
   }
 }
