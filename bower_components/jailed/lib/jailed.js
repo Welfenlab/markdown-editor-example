@@ -1,6 +1,6 @@
 /**
  * @fileoverview Jailed - safe yet flexible sandbox
- * @version 0.1.1
+ * @version 0.2.0
  * 
  * @license MIT, see http://github.com/asvd/jailed
  * Copyright (c) 2014 asvd <heliosframework@gmail.com> 
@@ -13,26 +13,13 @@
  *  _JailedSite.js    loaded into both applicaiton and plugin sites
  *  _frame.html       sandboxed frame (web)
  *  _frame.js         sandboxed frame code (web)
- *  _pluginWeb.js     platform-dependent plugin routines (web)
+ *  _pluginWebWorker.js  platform-dependent plugin routines (web / worker)
+ *  _pluginWebIframe.js  platform-dependent plugin routines (web / iframe)
  *  _pluginNode.js    platform-dependent plugin routines (Node.js)
  *  _pluginCore.js    common plugin site protocol implementation
  */
 
-
-var __jailed__path__;
-if (typeof window == 'undefined') {
-    // Node.js
-    __jailed__path__ = __dirname + '/';
-} else {
-    // web
-    var scripts = document.getElementsByTagName('script');
-    __jailed__path__ = scripts[scripts.length-1].src
-        .split('?')[0]
-        .split('/')
-        .slice(0, -1)
-        .join('/')+'/';
-}
-
+// no jailed path needed all assets are compiled into the bundle
 
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
@@ -79,8 +66,8 @@ if (typeof window == 'undefined') {
             }
         }
     }
-     
-     
+
+
     /**
      * Saves the provided function as a handler for the Whenable
      * event. This handler will then be called upon the event emission
@@ -98,7 +85,7 @@ if (typeof window == 'undefined') {
         }
     }
 
-     
+
     /**
      * Checks if the provided object is suitable for being subscribed
      * to the event (= is a function), throws an exception if not
@@ -121,183 +108,37 @@ if (typeof window == 'undefined') {
 
         return handler;
     }
-      
-      
-      
-    /**
-     * Initializes the library site for Node.js environment (loads
-     * _JailedSite.js)
-     */
-    var initNode = function() {
-        require('./_JailedSite.js');
-    }
-      
-      
+
     /**
      * Initializes the library site for web environment (loads
      * _JailedSite.js)
      */
     var platformInit;
     var initWeb = function() {
-        // loads additional script to the application environment
-        var load = function(path, cb) {
-            var script = document.createElement('script');
-            script.src = path;
-
-            var clear = function() {
-                script.onload = null;
-                script.onerror = null;
-                script.onreadystatechange = null;
-                script.parentNode.removeChild(script);
-            }
-
-            var success = function() {
-                clear();
-                cb();
-            }
-
-            script.onerror = clear;
-            script.onload = success;
-            script.onreadystatechange = function() {
-                var state = script.readyState;
-                if (state==='loaded' || state==='complete') {
-                    success();
-                }
-            }
-
-            document.body.appendChild(script);
-        }
-
         platformInit = new Whenable;
-        var origOnload = window.onload || function(){};
-
-        window.onload = function(){
-            origOnload();
-            load(
-                __jailed__path__+'_JailedSite.js',
-                function(){ platformInit.emit(); }
-            );
-        }
+        
+        platformInit.emit();
     }
 
 
     var BasicConnection;
-      
-    /**
-     * Creates the platform-dependent BasicConnection object in the
-     * Node.js environment
-     */
-    var basicConnectionNode = function() {
-        var childProcess = require('child_process');
-
-        /**
-         * Platform-dependent implementation of the BasicConnection
-         * object, initializes the plugin site and provides the basic
-         * messaging-based connection with it
-         * 
-         * For Node.js the plugin is created as a forked process
-         */
-        BasicConnection = function() {
-            this._disconnected = false;
-            this._messageHandler = function(){};
-            this._disconnectHandler = function(){};
-            this._process = childProcess.fork(
-                __jailed__path__+'_pluginNode.js'
-            );
-
-            var me = this;
-            this._process.on('message', function(m){
-                me._messageHandler(m);
-            });
-
-            this._process.on('exit', function(m){
-                me._disconnected = true;
-                me._disconnectHandler(m);
-            });
-        }
-
-
-        /**
-         * Sets-up the handler to be called upon the BasicConnection
-         * initialization is completed.
-         * 
-         * For Node.js the connection is fully initialized within the
-         * constructor, so simply calls the provided handler.
-         * 
-         * @param {Function} handler to be called upon connection init
-         */
-        BasicConnection.prototype.whenInit = function(handler) {
-            handler();
-        }
-
-
-        /**
-         * Sends a message to the plugin site
-         * 
-         * @param {Object} data to send
-         */
-        BasicConnection.prototype.send = function(data) {
-            if (!this._disconnected) {
-                this._process.send(data);
-            }
-        }
-
-
-        /**
-         * Adds a handler for a message received from the plugin site
-         * 
-         * @param {Function} handler to call upon a message
-         */
-        BasicConnection.prototype.onMessage = function(handler) {
-            this._messageHandler = function(data) {
-                // broken stack would break the IPC in Node.js
-                try {
-                    handler(data);
-                } catch (e) {
-                    console.error();
-                    console.error(e.stack);
-                }
-            }
-        }
-
-
-        /**
-         * Adds a handler for the event of plugin disconnection
-         * (= plugin process exit)
-         * 
-         * @param {Function} handler to call upon a disconnect
-         */
-        BasicConnection.prototype.onDisconnect = function(handler) {
-            this._disconnectHandler = handler;
-        }
-
-
-        /**
-         * Disconnects the plugin (= kills the forked process)
-         */
-        BasicConnection.prototype.disconnect = function() {
-            this._process.kill('SIGKILL');
-            this._disconnected = true;
-        }
-
-    }
-
 
     /**
      * Creates the platform-dependent BasicConnection object in the
      * web-browser environment
      */
-    var basicConnectionWeb = function() {
+    var basicConnectionWeb = function(basePath) {
+        basePath = basePath || '';
         var perm = ['allow-scripts'];
-
-        if (__jailed__path__.substr(0,7).toLowerCase() == 'file://') {
-            // local instance requires extra permission
-            perm.push('allow-same-origin');
-        }
+        
+        // this gets loaded when bunbled with browserify and brfs
+        var fs = require('fs')
+        var iframeSrc = '<script>\n'+fs.readFileSync(__dirname + '/../dist/web/_frame.js', 'utf8') + '\n</script>'
+        var iframeBlob = new Blob([iframeSrc], {type: 'text/html'})
 
         // frame element to be cloned
         var sample = document.createElement('iframe');
-        sample.src = __jailed__path__ + '_frame.html';
+        sample.src = URL.createObjectURL(iframeBlob)
         sample.sandbox = perm.join(' ');
         sample.style.display = 'none';
 
@@ -321,9 +162,10 @@ if (typeof window == 'undefined') {
                     document.body.appendChild(me._frame);
 
                     window.addEventListener('message', function (e) {
-                        if (e.origin === "null" &&
-                            e.source === me._frame.contentWindow) {
+                        if (e.source === me._frame.contentWindow) {
                             if (e.data.type == 'initialized') {
+                                me.dedicatedThread =
+                                    e.data.dedicatedThread;
                                 me._init.emit();
                             } else {
                                 me._messageHandler(e.data);
@@ -341,8 +183,8 @@ if (typeof window == 'undefined') {
          * 
          * For the web-browser environment, the handler is issued when
          * the plugin worker successfully imported and executed the
-         * _pluginWeb.js, and replied to the application site with the
-         * initImprotSuccess message.
+         * _pluginWebWorker.js or _pluginWebIframe.js, and replied to
+         * the application site with the initImprotSuccess message.
          * 
          * @param {Function} handler to be called upon connection init
          */
@@ -396,16 +238,14 @@ if (typeof window == 'undefined') {
 
     }
 
-
-    if (isNode) {
-        initNode();
-        basicConnectionNode();
-    } else {
-        initWeb();
-        basicConnectionWeb();
-    }
-
-
+    /**
+     * Initializes the sandbox
+     * @param basePath - path for root where jailed.js files is places. "sandbox-compiled/" for example
+     * Needed only for web.
+     */
+    
+    initWeb();
+    basicConnectionWeb("");
       
     /**
      * Application-site Connection object constructon, reuses the
@@ -447,6 +287,17 @@ if (typeof window == 'undefined') {
                 break;
             }
         });
+    }
+
+
+    /**
+     * @returns {Boolean} true if a connection obtained a dedicated
+     * thread (subprocess in Node.js or a subworker in browser) and
+     * therefore will not hang up on the infinite loop in the
+     * untrusted code
+     */
+    Connection.prototype.hasDedicatedThread = function() {
+        return this._platformConnection.dedicatedThread;
     }
 
 
@@ -580,9 +431,9 @@ if (typeof window == 'undefined') {
         this._path = url;
         this._initialInterface = _interface||{};
         this._connect();
-    }
-      
-      
+    };
+
+
     /**
      * DynamicPlugin constructor, represents a plugin initialized by a
      * string containing the code to be executed
@@ -594,9 +445,9 @@ if (typeof window == 'undefined') {
         this._code = code;
         this._initialInterface = _interface||{};
         this._connect();
-    }
-      
-      
+    };
+
+
     /**
      * Creates the connection to the plugin site
      */
@@ -629,6 +480,7 @@ if (typeof window == 'undefined') {
      */
     DynamicPlugin.prototype._init =
            Plugin.prototype._init = function() {
+        var JailedSite = require('./_JailedSite');
         this._site = new JailedSite(this._connection);
                
         var me = this;
@@ -636,31 +488,8 @@ if (typeof window == 'undefined') {
             me._disconnect.emit();
         });
 
-        var sCb = function() {
-            me._loadCore();
-        }
-
-        this._connection.importScript(
-            __jailed__path__+'_JailedSite.js', sCb, this._fCb
-        );
+       me._sendInterface();
     }
-
-
-    /**
-     * Loads the core scirpt into the plugin
-     */
-    DynamicPlugin.prototype._loadCore =
-           Plugin.prototype._loadCore = function() {
-        var me = this;
-        var sCb = function() {
-            me._sendInterface();
-        }
-
-        this._connection.importScript(
-            __jailed__path__+'_pluginCore.js', sCb, this._fCb
-        );
-    }
-    
     
     /**
      * Sends to the remote site a signature of the interface provided
@@ -723,6 +552,17 @@ if (typeof window == 'undefined') {
         });
 
         this._site.requestRemote();
+    }
+
+
+    /**
+     * @returns {Boolean} true if a plugin runs on a dedicated thread
+     * (subprocess in Node.js or a subworker in browser) and therefore
+     * will not hang up on the infinite loop in the untrusted code
+     */
+    DynamicPlugin.prototype.hasDedicatedThread =
+           Plugin.prototype.hasDedicatedThread = function() {
+        return this._connection.hasDedicatedThread();
     }
 
     

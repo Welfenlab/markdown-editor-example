@@ -161,10 +161,15 @@ editor = markdownEditor.create 'input', initialValue, plugins: [
 
 text = ko.observable editor.getValue()
 
-task = ko.computed => 
-  solution: text
-  text: -> ""
-  tests: -> ""
+#task = ko.computed => 
+#  solution: text
+#  text: -> ""
+#  tests: -> ""
 
+#ko.applyBindings(task:task)
 
-ko.applyBindings(task:task)
+viewModel = {
+  markdown: text,
+  testResults: ko.observable([])
+}
+ko.applyBindings(viewModel)
