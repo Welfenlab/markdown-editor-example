@@ -14,7 +14,8 @@
     "tests"
   ],
   "dependencies": {
-    "jailed": "~0.2.0",
-    "nvd3": "~1.8.1"
+    "jailed": "Welfenlab/jailed#d3d0ad6de4bf78127997973b63ada54619f2f209",
+    "nvd3": "fasib/nvd3#fix",
+    "d3": "~3.5.12"
   }
 }

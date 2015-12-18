@@ -5,7 +5,6 @@ var buffer      = require('vinyl-buffer');
 var uglify      = require('gulp-uglify');
 var sourcemaps  = require('gulp-sourcemaps');
 
-
 // browserify bundle for direct browser use.
 gulp.task("bundle", function(){
   bundler = browserify('./example.coffee',
@@ -14,7 +13,7 @@ gulp.task("bundle", function(){
       extensions: ['.coffee'],
       debug: false
     });
-
+  
   return bundler.bundle()
     .pipe(source('example.js'))
     .pipe(buffer())
