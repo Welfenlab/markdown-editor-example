@@ -89,6 +89,21 @@ $$ a = \\frac{1}{b}$$
 
 ```js
 console.log("eval this!");
+
+// Used to plot charts
+function test1() {
+    var data = [];
+    for(var i=0; i < 10; i++)
+      data.push([i, i*i*(i-10)]);
+    return data;
+}
+
+function test2(from, to) {
+    var data = [];
+    for(var i = from; i < to; i++)
+      data.push([i, (i-8)*(i-5)]);
+    return data;
+}
 ```
 
 # Graphs via dot and dagreD3
@@ -102,16 +117,12 @@ c -> b;
 
 ```chart
 plot(
+  test1, test2(7,10),
   [[0,1],[1,2],[2,5],[3,3],[4,6],[5,1],[6,0]],
   function() {
     var data = [];
     for(var i=0; i < 10; i++)
       data.push([i, i*i]);
-    return data;
-  },function() {
-    var data = [];
-    for(var i=0; i < 10; i++)
-      data.push([i-2, (i-10)*Math.pow(i,4-i)]);
     return data;
   }
 );

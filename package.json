@@ -33,7 +33,7 @@
   "dependencies": {
     "@more-markdown/code-controls": "^0.1.2",
     "@more-markdown/dot-processor": "^0.1.2",
-    "@more-markdown/graph-chart-processor": "0.0.9",
+    "@more-markdown/graph-chart-processor": "0.0.10",
     "@more-markdown/mathjax-processor": "^0.1.2",
     "@more-markdown/svg-processor": "^0.0.3",
     "@more-markdown/test-processor": "^0.1.3",
